@@ -1,0 +1,6 @@
+# IDEs folders
+.vscode
+.idea
+
+# Python cache
+*__pycache__*
