@@ -64,14 +64,23 @@ models_params = [
       'mlp_neurons': 300
     }
   },
+  {
+    'name': 'mudar_kernel-4-6-500',
+    'parameters': {
+      'first_layer': {'filters': 4, 'kernel_size': 7},
+      'second_layer': {'filters': 6, 'kernel_size': 7},
+      'mlp_neurons': 500
+    }
+  },
 ]
 
 # Create and test each model, saving them
 for model_params in models_params:
   model = MnistModel(model_params['name'])
   model.generate_model(**model_params['parameters'])
+  model.save_model()
   history = model.train(X_train, Y_train)
-  print(history)
-  metrics = model.calculate_metrics()
+  print(history.history)
+  metrics = model.calculate_metrics(X_test, Y_test)
   print(model.get_metrics_names())
   print(metrics)

@@ -52,16 +52,17 @@ class MnistModel(object):
       self,
       X_train, Y_train,
       X_valid=None, Y_valid=None,
-      validation_split=0.2, batch_size=50, epochs=200):
+      validation_split=0.2, batch_size=50, epochs=20):
     es = EarlyStopping(
-      monitor='val_loss',
-      mode='min',
-      min_delta=1
+      monitor='val_acc',
+      mode='max',
+      min_delta=0.001,
+      patience=5
     )
     cp = ModelCheckpoint(
       self.save_name(suffix='best'),
-      monitor='val_loss',
-      mode='min',
+      monitor='val_acc',
+      mode='max',
       save_best_only=True
     )
     params = {
@@ -87,7 +88,7 @@ class MnistModel(object):
     return self.model.predict(X_test, batch_size=50)
 
   def calculate_metrics(self, X_test, Y_test):
-    self.model.evaluate(X_test, Y_test, verbose=0)
+    return self.model.evaluate(X_test, Y_test, verbose=0)
 
   def get_metrics_names(self):
     return self.model.metrics_names
