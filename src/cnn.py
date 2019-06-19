@@ -1,65 +1,125 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import keras
-from keras.models import Sequential
+import keras_metrics as km
+from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.models import Sequential, load_model, Model
 from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras.layers.core import Dense, Activation, Flatten, Dropout
 
 class MnistModel(object):
-  def __init__(self):
+  def __init__(self, name):
+    # Save the model name for future use
+    self.name = name
+
+  def generate_model(
+      self,
+      first_layer = {'filters': 4, 'kernel_size': 5},
+      second_layer = {'filters': 6, 'kernel_size': 5},
+      mlp_neurons = 500):
     # Define a model
     model = Sequential()
 
     # Add a convolutional layer
-    model.add(Conv2D(4, 4, input_shape=(28,28,1), data_format="channels_last"))
+    model.add(Conv2D(**first_layer, input_shape=(28,28,1), padding="same", data_format="channels_last", name='first_conv'))
     # a pooling layer
     model.add(MaxPooling2D(pool_size=(2,2)))
-    # and a dropout layer
-    model.add(Dropout(0.25))
-
     # Add a convolutional layer
-    model.add(Conv2D(4, 4))
+    model.add(Conv2D(**second_layer, padding="same", name='second_conv'))
     # a pooling layer
     model.add(MaxPooling2D(pool_size=(2,2)))
-    # and a dropout layer
-    model.add(Dropout(0.25))
-
     # Make matrix become flat
     model.add(Flatten())
 
     # Add a Multilayer Perceptron for classification
-    for hl in [200]:
-      model.add(Dense(hl))
-
+    model.add(Dense(mlp_neurons))
     # Add the output layer
-    model.add(Dense(10))
-
+    model.add(Dense(10, activation="softmax"))
     # Add a softmax activation layer
-    model.add(Activation("softmax"))
+    # model.add(Activation("softmax"))
 
     # Finish creating the model
     model.compile(
       loss=keras.losses.categorical_crossentropy,
       optimizer=keras.optimizers.Adadelta(),
-      metrics=['accuracy']
+      metrics=['accuracy', km.precision()]
     )
+
+    print(model.summary())
     self.model = model
 
-  def train(self, X_train, Y_train, X_valid, Y_valid, batch_size=64, epochs=100):
-    out = self.model.fit(
+  def train(
+      self,
       X_train, Y_train,
-      batch_size=batch_size,
-      epochs=epochs,
-      verbose=1,
-      validation_data=(X_valid, Y_valid)
+      X_valid=None, Y_valid=None,
+      validation_split=0.2, batch_size=50, epochs=200):
+    es = EarlyStopping(
+      monitor='val_loss',
+      mode='min',
+      min_delta=1
     )
-    return out
+    cp = ModelCheckpoint(
+      self.save_name(suffix='best'),
+      monitor='val_loss',
+      mode='min',
+      save_best_only=True
+    )
+    params = {
+      'x': X_train, 'y': Y_train,
+      'batch_size': batch_size,
+      'epochs': epochs,
+      'verbose': 1,
+      'callbacks': [es],
+    }
+    if X_valid is None or Y_valid is None:
+      history = self.model.fit(
+        **params,
+        validation_split=validation_split
+      )
+    else:
+      history = self.model.fit(
+        **params,
+        validation_data=(X_valid, Y_valid)
+      )
+    return history
 
   def predict(self, X_test):
     return self.model.predict(X_test, batch_size=50)
 
-  def calculate_accuracy(self, X_test, Y_test):
-    out = self.predict(X_test)
+  def calculate_metrics(self, X_test, Y_test):
+    self.model.evaluate(X_test, Y_test, verbose=0)
+
+  def get_metrics_names(self):
+    return self.model.metrics_names
+
+  def save_name(self, suffix=None):
+    if suffix == None:
+      name = 'models/{}.h5'.format(self.name)
+    else:
+      name = 'models/{}_{}.h5'.format(self.name, suffix)
+    return name
+
+  def save_model(self):
+    self.model.save(self.save_name())
+
+  def load_model(self):
+    self.model = load_model(self.save_name())
+    print(model.summary())
+
+  def get_activation(self, X, layer_name='first_conv'):
+    assert layer_name == 'first_conv' or layer_name == 'second_conv'
+    # Creates model for getting the convolutional layers activation
+    view_layer = Model(inputs=self.model.input, outputs=self.model.get_layer(layer_name).output)
+    # Calculates the convolutional layer output
+    return view_layer.predict(X)
+
+  def get_filters(self):
+    filters = {
+      'first_conv': self.model.get_layer('first_conv').get_weights(),
+      'second_conv': self.model.get_layer('second_conv').get_weights()
+    }
+    return filters
+
 
   @staticmethod
   def convert_label(Y :np.ndarray):
