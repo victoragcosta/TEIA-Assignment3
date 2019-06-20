@@ -3,9 +3,9 @@ Desenvolvimento de uma Rede Neural Convolucional para resolver o problema de rec
 
 # TODO:
 
-* [x] Adicionar early stopping
-* [x] Gerar histórico de métricas
-* [x] Criar parâmetros as serem rodados
-* [ ] Apresentar filtros
-* [ ] Apresentar ativações de exemplos específicos
+* [X] Adicionar early stopping
+* [X] Gerar histórico de métricas
+* [X] Criar parâmetros as serem rodados
+* [X] Apresentar filtros
+* [X] Apresentar ativações de exemplos específicos
 * [ ] Apresentar imagens mal classificadas

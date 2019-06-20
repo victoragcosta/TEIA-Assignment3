@@ -5,8 +5,8 @@ from functions import *
 
 calculate_graphs = False
 
+(X_train, Y_train), (X_test, Y_test) = extract_data('data')
 if calculate_graphs:
-  (X_train, Y_train), (X_test, Y_test) = extract_data('data')
   models_params = get_test_models()
 
   # fig, (loss, accuracy, precision) = plt.subplots(3,1)
@@ -84,19 +84,18 @@ if calculate_graphs:
 
 ## Visualizing the trained filters ##
 # from src.cnn import *
+# from src.functions import *
 
-# TODO: Carregar melhor modelo
 best_model_name = 'padrao-4-6-500'
 model = MnistModel(best_model_name)
 model.load_model()
 
-# TODO: Apresentar filtros (melhor modelo)
 # Load filters for showing
 layers = model.get_filters()
 
 # Show all neurons filters of the first layer in a single plot
 layer = 'first_conv'
-fig = plt.figure(layer+'-all_neurons')
+fig = plt.figure(layer+'-filters-all_neurons')
 axes = fig.subplots(2,2)
 axes = list(axes.flatten())
 filt = layers[layer][0]
@@ -105,31 +104,21 @@ for i in range(filt.shape[2]):
   for o in range(filt.shape[3]):
     axes[ax_num].matshow(filt[:,:,i:i+1,o:o+1].squeeze(), cmap='gray')
     axes[ax_num].set_title('{}-{}-{}'.format(layer, i, o))
-    axes[ax_num].get_xaxis().set_visible(False)
-    axes[ax_num].get_yaxis().set_visible(False)
-    axes[ax_num].get_xaxis().set_ticks([])
-    axes[ax_num].get_yaxis().set_ticks([])
-    axes[ax_num].get_xaxis().set_ticklabels([])
-    axes[ax_num].get_yaxis().set_ticklabels([])
+    remove_marks(axes[ax_num])
     ax_num += 1
 
 # Show all 4 channels of each neuron of the second layer in a single plot
 layer = 'second_conv'
 filt = layers[layer][0]
 for o in range(filt.shape[3]):
-  fig = plt.figure(layer+'-neuron_'+str(o))
+  fig = plt.figure(layer+'-filters-neuron_'+str(o))
   axes = fig.subplots(2,2)
   axes = list(axes.flatten())
   ax_num = 0
   for i in range(filt.shape[2]):
     axes[ax_num].matshow(filt[:,:,i:i+1,o:o+1].squeeze(), cmap='gray')
     axes[ax_num].set_title('{}-{}-{}'.format(layer, i, o))
-    axes[ax_num].get_xaxis().set_visible(False)
-    axes[ax_num].get_yaxis().set_visible(False)
-    axes[ax_num].get_xaxis().set_ticks([])
-    axes[ax_num].get_yaxis().set_ticks([])
-    axes[ax_num].get_xaxis().set_ticklabels([])
-    axes[ax_num].get_yaxis().set_ticklabels([])
+    remove_marks(axes[ax_num])
     ax_num += 1
 
 # Save the results
@@ -138,9 +127,36 @@ for name in plt.get_figlabels():
   fig.savefig('img/{}.png'.format(name))
 
 # Show the results!
-plt.show()
+# plt.show()
 
+# Present the activations for a example
+X = X_test[1:2,:,:,:]
+layer = 'first_conv'
+activation = model.get_activation(X, layer_name=layer)
+fig = plt.figure(layer+'-neurons_activation')
+axes = fig.subplots(2,2)
+axes = list(axes.flatten())
+for neuron in range(activation.shape[3]):
+  axes[neuron].matshow(activation[0:1,:,:,neuron:neuron+1].squeeze(), cmap='gray')
+  axes[neuron].set_title('{}-neuron_{}'.format(layer, neuron))
+  remove_marks(axes[neuron])
 
-# TODO: Apresentar ativações (melhor modelo)
+layer = 'second_conv'
+activation = model.get_activation(X, layer_name='second_conv')
+fig = plt.figure(layer+'-neurons_activation')
+axes = fig.subplots(2,3)
+axes = list(axes.flatten())
+for neuron in range(activation.shape[3]):
+  axes[neuron].matshow(activation[0:1,:,:,neuron:neuron+1].squeeze(), cmap='gray')
+  axes[neuron].set_title('{}-neuron_{}'.format(layer, neuron), fontsize=10.5)
+  remove_marks(axes[neuron])
+
+# Save the activations to figures
+for name in plt.get_figlabels():
+  fig = plt.figure(name)
+  fig.savefig('img/{}.png'.format(name))
+
+# Show the activations
+# plt.show()
 
 # TODO: Apresentar imagens mal classificadas (melhor modelo)

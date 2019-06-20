@@ -80,3 +80,11 @@ def get_test_models():
     },
   ]
   return models_params
+
+def remove_marks(ax):
+  ax.get_xaxis().set_visible(False)
+  ax.get_yaxis().set_visible(False)
+  ax.get_xaxis().set_ticks([])
+  ax.get_yaxis().set_ticks([])
+  ax.get_xaxis().set_ticklabels([])
+  ax.get_yaxis().set_ticklabels([])
