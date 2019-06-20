@@ -160,3 +160,32 @@ for name in plt.get_figlabels():
 # plt.show()
 
 # TODO: Apresentar imagens mal classificadas (melhor modelo)
+# Show an example of number guessed wrong
+prediction = np.round(model.predict(X_test))
+cond = (prediction != Y_test).any(axis=1)
+X_wrong = X_test[cond]
+Y_wrong = Y_test[cond]
+pred_wrong = prediction[cond]
+
+for i in range(5):
+  X = X_wrong[i:i+1,:,:,:].squeeze()
+  Y = Y_wrong[i:i+1,:].squeeze().argmax()
+  pred = pred_wrong[i:i+1,:].squeeze().argmax()
+
+  fig = plt.figure('wrong_prediction_{}'.format(i))
+  fig.gca().matshow(X, cmap='gray')
+  remove_marks(fig.gca())
+
+  fig.text(0.68,0.75+0.11-0.05,'Esperado:',fontsize=28)
+  fig.text(0.68,0.5+0.11-0.05, str(Y),fontsize=100)
+  fig.text(0.68,0.25+0.11,'Predito:',fontsize=28)
+  fig.text(0.68,0.11, str(pred),fontsize=100)
+  fig.subplots_adjust(left=0.04, right=0.68)
+
+# Saves the wrong predictions
+for name in plt.get_figlabels():
+  fig = plt.figure(name)
+  fig.savefig('img/{}.png'.format(name))
+
+# Show the wrong prediction
+# plt.show()
