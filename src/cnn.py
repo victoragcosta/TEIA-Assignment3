@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import keras
+import json
 import keras_metrics as km
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.models import Sequential, load_model, Model
@@ -16,7 +17,8 @@ class MnistModel(object):
       self,
       first_layer = {'filters': 4, 'kernel_size': 5},
       second_layer = {'filters': 6, 'kernel_size': 5},
-      mlp_neurons = 500):
+      mlp_neurons = 500,
+      verbose=0):
     # Define a model
     model = Sequential()
 
@@ -45,14 +47,18 @@ class MnistModel(object):
       metrics=['accuracy', km.precision()]
     )
 
-    print(model.summary())
+    if verbose >= 1:
+      print(model.summary())
     self.model = model
 
   def train(
       self,
       X_train, Y_train,
       X_valid=None, Y_valid=None,
-      validation_split=0.2, batch_size=50, epochs=20):
+      validation_split=0.2, batch_size=50, epochs=20,
+      verbose=1):
+    if verbose >= 1:
+      print("Training model {}.".format(self.name))
     es = EarlyStopping(
       monitor='val_acc',
       mode='max',
@@ -82,6 +88,7 @@ class MnistModel(object):
         **params,
         validation_data=(X_valid, Y_valid)
       )
+    self.history = history.history
     return history
 
   def predict(self, X_test):
@@ -91,7 +98,7 @@ class MnistModel(object):
     return self.model.evaluate(X_test, Y_test, verbose=0)
 
   def get_metrics_names(self):
-    return self.model.metrics_names
+    return self.model.metrics_names[:]
 
   def save_name(self, suffix=None):
     if suffix == None:
@@ -102,10 +109,20 @@ class MnistModel(object):
 
   def save_model(self):
     self.model.save(self.save_name())
+    history_name = self.save_name().split('.')[0] + '.json'
+    with open(history_name, 'w') as history_file:
+      json.dump(self.history,history_file)
 
-  def load_model(self):
-    self.model = load_model(self.save_name())
-    print(model.summary())
+  def load_model(self, verbose=0):
+    self.model = load_model(
+      self.save_name(),
+      custom_objects={'binary_precision': km.precision()}
+    )
+    if verbose >= 1:
+      print(self.model.summary())
+    history_name = self.save_name().split('.')[0] + '.json'
+    with open(history_name, 'r') as history_file:
+      self.history = json.load(history_file)
 
   def get_activation(self, X, layer_name='first_conv'):
     assert layer_name == 'first_conv' or layer_name == 'second_conv'
