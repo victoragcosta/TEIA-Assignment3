@@ -6,7 +6,7 @@ import keras_metrics as km
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.models import Sequential, load_model, Model
 from keras.layers.convolutional import Conv2D, MaxPooling2D
-from keras.layers.core import Dense, Activation, Flatten, Dropout
+from keras.layers.core import Dense, Flatten, Dropout
 
 class MnistModel(object):
   def __init__(self, name):
