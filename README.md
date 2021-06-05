@@ -1,4 +1,4 @@
-# Trab3_TEIA
+# Tópicos em Engenharia: Inteligência Artificial - 3º Trabalho
 Desenvolvimento de uma Rede Neural Convolucional para resolver o problema de reconhecimento de dígitos da base de dados MNIST
 
 ## Alunos
